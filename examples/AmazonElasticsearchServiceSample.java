@@ -55,6 +55,7 @@ public class AmazonElasticsearchServiceSample extends Sample {
         String payload = "{\"test\": \"val\"}";
         HttpPost httpPost = new HttpPost(AES_ENDPOINT + "/index_name/type_name/document_id");
         httpPost.setEntity(stringEntity(payload));
+        httpPost.addHeader("Content-Type", "application/json");
         logRequest("es", httpPost);
     }
 }
