@@ -38,7 +38,7 @@ import java.io.IOException;
  * String serviceName = "es";
  * AWS4Signer signer = new AWS4Signer();
  * signer.setServiceName(serviceName);
- * signer.setRegionName(region);
+ * signer.setRegionName("us-east-1");
  *
  * HttpRequestInterceptor interceptor =
  *     new AWSRequestSigningApacheInterceptor(serviceName, signer, credentialsProvider);
