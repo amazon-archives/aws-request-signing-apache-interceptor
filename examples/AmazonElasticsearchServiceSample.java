@@ -16,26 +16,35 @@ import org.apache.http.client.methods.HttpPost;
 import java.io.IOException;
 
 /**
- * An AWS request signing interceptor sample for arbitrary HttpRequests to an Amazon Elasticsearch Service.
- * <p>
- * The interceptor can also be used e.g. with the Elasticsearch REST for additional convenience and serialization.
- * <p>
- * Example usage with Elasticsearch REST client:
- * <p>
+ * <p>An AWS Request Signing Interceptor sample for arbitrary HTTP requests to an Amazon Elasticsearch Service domain.</p>
+ * <p>The interceptor can also be used with the Elasticsearch REST clients for additional convenience and serialization.</p>
+ * <p>Example usage with the Elasticsearch low-level REST client:</p>
  * <pre>
- *
  * String serviceName = "es";
  * AWS4Signer signer = new AWS4Signer();
  * signer.setServiceName(serviceName);
  * signer.setRegionName("us-east-1");
  *
  * HttpRequestInterceptor interceptor =
- *      new AWSRequestSigningApacheInterceptor(serviceName, signer, credentialsProvider);
+ *     new AWSRequestSigningApacheInterceptor(serviceName, signer, credentialsProvider);
  *
  * return RestClient
- * .builder(HttpHost.create("https://search-my-es-endpoint-gjhfgfhgfhg.us-east-1.amazonaws.com"))
- * .setHttpClientConfigCallback(hacb -> hacb.addInterceptorLast(interceptor))
+ *     .builder(HttpHost.create("https://search-my-es-endpoint-gjhfgfhgfhg.us-east-1.amazonaws.com"))
+ *     .setHttpClientConfigCallback(hacb -> hacb.addInterceptorLast(interceptor))
  * .build();
+ * </pre>
+ * <p>Example usage with the Elasticsearch high-level REST client:</p>
+ * <pre>
+ * String serviceName = "es";
+ * AWS4Signer signer = new AWS4Signer();
+ * signer.setServiceName(serviceName);
+ * signer.setRegionName(region);
+ *
+ * HttpRequestInterceptor interceptor =
+ *     new AWSRequestSigningApacheInterceptor(serviceName, signer, credentialsProvider);
+ * return new RestHighLevelClient(RestClient
+ *     .builder(HttpHost.create("https://search-my-es-endpoint-gjhfgfhgfhg.us-east-1.amazonaws.com"))
+ *     .setHttpClientConfigCallback(hacb -> hacb.addInterceptorLast(interceptor)));
  * </pre>
  */
 public class AmazonElasticsearchServiceSample extends Sample {
