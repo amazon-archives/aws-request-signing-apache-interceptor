@@ -31,7 +31,7 @@ import java.io.IOException;
  * return RestClient
  *     .builder(HttpHost.create("https://search-my-es-endpoint-gjhfgfhgfhg.us-east-1.amazonaws.com"))
  *     .setHttpClientConfigCallback(hacb -> hacb.addInterceptorLast(interceptor))
- * .build();
+ *     .build();
  * </pre>
  * <p>Example usage with the Elasticsearch high-level REST client:</p>
  * <pre>
