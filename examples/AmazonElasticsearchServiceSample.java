@@ -42,6 +42,7 @@ import java.io.IOException;
  *
  * HttpRequestInterceptor interceptor =
  *     new AWSRequestSigningApacheInterceptor(serviceName, signer, credentialsProvider);
+ * 
  * return new RestHighLevelClient(RestClient
  *     .builder(HttpHost.create("https://search-my-es-endpoint-gjhfgfhgfhg.us-east-1.amazonaws.com"))
  *     .setHttpClientConfigCallback(hacb -> hacb.addInterceptorLast(interceptor)));
