@@ -18,6 +18,7 @@ import com.amazonaws.auth.Signer;
 import org.apache.http.Header;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
@@ -60,14 +61,13 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
     private final AWSCredentialsProvider awsCredentialsProvider;
 
     /**
-     *
-     * @param service service that we're connecting to
-     * @param signer particular signer implementation
+     * @param service                service that we're connecting to
+     * @param signer                 particular signer implementation
      * @param awsCredentialsProvider source of AWS credentials for signing
      */
     public AWSRequestSigningApacheInterceptor(final String service,
-                                final Signer signer,
-                                final AWSCredentialsProvider awsCredentialsProvider) {
+                                              final Signer signer,
+                                              final AWSCredentialsProvider awsCredentialsProvider) {
         this.service = service;
         this.signer = signer;
         this.awsCredentialsProvider = awsCredentialsProvider;
@@ -83,7 +83,7 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
         try {
             uriBuilder = new URIBuilder(request.getRequestLine().getUri());
         } catch (URISyntaxException e) {
-            throw new IOException("Invalid URI" , e);
+            throw new IOException("Invalid URI", e);
         }
 
         // Copy Apache HttpRequest to AWS DefaultRequest
@@ -99,7 +99,7 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
         try {
             signableRequest.setResourcePath(uriBuilder.build().getRawPath());
         } catch (URISyntaxException e) {
-            throw new IOException("Invalid URI" , e);
+            throw new IOException("Invalid URI", e);
         }
 
         if (request instanceof HttpEntityEnclosingRequest) {
@@ -114,24 +114,34 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
         signableRequest.setParameters(nvpToMapParams(uriBuilder.getQueryParams()));
         signableRequest.setHeaders(headerArrayToMap(request.getAllHeaders()));
 
+        SignableRequestContentChangeInterceptor<?> wrappedSignableRequest =
+                new SignableRequestContentChangeInterceptor<>(signableRequest);
+
         // Sign it
-        signer.sign(signableRequest, awsCredentialsProvider.getCredentials());
+        signer.sign(wrappedSignableRequest, awsCredentialsProvider.getCredentials());
 
         // Now copy everything back
         request.setHeaders(mapToHeaderArray(signableRequest.getHeaders()));
-        if (request instanceof HttpEntityEnclosingRequest) {
+        // Replace http entity only if content got changed
+        if (wrappedSignableRequest.isContentChanged() &&
+                request instanceof HttpEntityEnclosingRequest) {
             HttpEntityEnclosingRequest httpEntityEnclosingRequest =
                     (HttpEntityEnclosingRequest) request;
             if (httpEntityEnclosingRequest.getEntity() != null) {
                 BasicHttpEntity basicHttpEntity = new BasicHttpEntity();
                 basicHttpEntity.setContent(signableRequest.getContent());
+                if (request.getFirstHeader(HttpHeaders.CONTENT_TYPE) != null) {
+                    basicHttpEntity.setContentType(request.getFirstHeader(HttpHeaders.CONTENT_TYPE));
+                }
+                if (request.getFirstHeader(HttpHeaders.CONTENT_ENCODING) != null) {
+                    basicHttpEntity.setContentEncoding(request.getFirstHeader(HttpHeaders.CONTENT_ENCODING));
+                }
                 httpEntityEnclosingRequest.setEntity(basicHttpEntity);
             }
         }
     }
 
     /**
-     *
      * @param params list of HTTP query params as NameValuePairs
      * @return a multimap of HTTP query params
      */
